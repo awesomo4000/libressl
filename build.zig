@@ -332,6 +332,47 @@ pub fn build(b: *std.Build) !void {
             libressl_common.linkSystemLibrary("bcrypt");
         },
 
+        .freebsd => {
+            libressl_common.libcrypto.root_module.addCSourceFiles(.{
+                .root = crypto_srcroot,
+                .files = libcrypto_unix_sources,
+                .flags = cflags,
+            });
+            libressl_common.libcrypto.root_module.addCSourceFiles(.{
+                .root = crypto_srcroot,
+                .files = libcrypto_freebsd_compat,
+                .flags = cflags,
+            });
+            libressl_common.apps.openssl.root_module.addCSourceFiles(.{
+                .root = openssl_srcroot,
+                .files = openssl_app_posix_sources,
+                .flags = cflags,
+            });
+
+            libressl_common.addCMacro("HAVE_CLOCK_GETTIME", "");
+            libressl_common.addCMacro("HAVE_ASPRINTF", "");
+            libressl_common.addCMacro("HAVE_STRCASECMP", "");
+            libressl_common.addCMacro("HAVE_STRLCAT", "");
+            libressl_common.addCMacro("HAVE_STRLCPY", "");
+            libressl_common.addCMacro("HAVE_STRNDUP", "");
+            libressl_common.addCMacro("HAVE_STRNLEN", "");
+            libressl_common.addCMacro("HAVE_STRSEP", "");
+            libressl_common.addCMacro("HAVE_STRTONUM", "");
+            libressl_common.addCMacro("HAVE_ARC4RANDOM_BUF", "");
+            libressl_common.addCMacro("HAVE_ARC4RANDOM_UNIFORM", "");
+            libressl_common.addCMacro("HAVE_EXPLICIT_BZERO", "");
+            libressl_common.addCMacro("HAVE_GETENTROPY", "");
+            libressl_common.addCMacro("HAVE_GETPAGESIZE", "");
+            libressl_common.addCMacro("HAVE_GETPROGNAME", "");
+            libressl_common.addCMacro("HAVE_SYSLOG", "");
+            libressl_common.addCMacro("HAVE_MEMMEM", "");
+            libressl_common.addCMacro("HAVE_ENDIAN_H", "");
+            libressl_common.addCMacro("HAVE_ERR_H", "");
+            libressl_common.addCMacro("HAVE_NETINET_IP_H", "");
+
+            libressl_common.linkSystemLibrary("pthread");
+        },
+
         else => if (tinfo.os.tag.isDarwin()) {
             libressl_common.libcrypto.root_module.addCSourceFiles(.{
                 .root = crypto_srcroot,
@@ -734,6 +775,16 @@ const libcrypto_macos_compat: []const []const u8 = &.{
 
     "compat/syslog_r.c",
     "compat/explicit_bzero.c",
+    "compat/timingsafe_bcmp.c",
+    "compat/timingsafe_memcmp.c",
+};
+
+const libcrypto_freebsd_compat: []const []const u8 = &.{
+    "compat/freezero.c",
+    "compat/reallocarray.c",
+    "compat/recallocarray.c",
+
+    "compat/syslog_r.c",
     "compat/timingsafe_bcmp.c",
     "compat/timingsafe_memcmp.c",
 };
